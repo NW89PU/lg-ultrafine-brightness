@@ -12,7 +12,7 @@ A sleek Windows application for controlling LG Ultrafine 4K/5K monitor brightnes
 
 ## 📸 Screenshots
 
-<img src="img.png" width="25%" alt="LG Ultrafine Brightness Control Interface">
+<img src="img.png" width="50%" alt="LG Ultrafine Brightness Control Interface">
 
 ## 🔧 Supported Monitors
 
@@ -53,7 +53,6 @@ If your LG Ultrafine monitor has a built-in ambient light sensor (ALS), the app 
 - Visual Studio 2019 or later (with C++ desktop development)
 - CMake 3.20+
 - Git
-- Ninja
 
 ### Build Steps
 
