@@ -47,13 +47,19 @@ bool Application::initialize(HINSTANCE hInstance) {
         m_ui->setBrightness(m_brightness->getBrightness());
 
         // Try to initialize ALS
+#ifdef _DEBUG
         std::wcout << L"[App] Attempting to initialize ALS..." << std::endl;
+#endif
         bool hasALS = m_brightness->initializeALS();
+#ifdef _DEBUG
         std::wcout << L"[App] ALS initialization result: " << (hasALS ? L"SUCCESS" : L"FAILED") << std::endl;
+#endif
         m_ui->setHasALS(hasALS);
         if (hasALS) {
             std::wstring alsName = m_brightness->getALSName();
+#ifdef _DEBUG
             std::wcout << L"[App] ALS Name: " << alsName << std::endl;
+#endif
             m_ui->setALSName(alsName);
         }
     }
@@ -91,7 +97,7 @@ bool Application::createWindow(HINSTANCE hInstance) {
 
     // Calculate DPI-scaled client area size
     int clientWidth = static_cast<int>(350 * dpiScale);
-    int clientHeight = static_cast<int>(800 * dpiScale);  // Increased for debug info
+    int clientHeight = static_cast<int>(420 * dpiScale);
 
     // Adjust for window frame and title bar
     RECT rect = { 0, 0, clientWidth, clientHeight };
@@ -315,15 +321,19 @@ LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 }
 
 void Application::updateAutoBrightness() {
+#ifdef _DEBUG
     static int callCount = 0;
     if (++callCount % 10 == 0) {  // Only log every 10th call to avoid spam
         std::wcout << L"[App] updateAutoBrightness called " << callCount << L" times" << std::endl;
     }
+#endif
 
     if (!m_brightness || !m_brightness->hasALS()) {
+#ifdef _DEBUG
         if (callCount % 10 == 0) {
             std::wcout << L"[App] No ALS available, hasALS=" << (m_brightness ? m_brightness->hasALS() : false) << std::endl;
         }
+#endif
         return;  // No ALS available
     }
 
@@ -331,7 +341,9 @@ void Application::updateAutoBrightness() {
     if (currentTime - m_lastAutoBrightnessUpdate >= AUTO_BRIGHTNESS_INTERVAL_MS) {
         // Always update ambient light reading in UI (even if auto-brightness is off)
         float ambientLight = m_brightness->getAmbientLight();
+#ifdef _DEBUG
         std::wcout << L"[App] Updating UI with lux: " << ambientLight << std::endl;
+#endif
         m_ui->setAmbientLight(ambientLight);
 
         // Only adjust brightness if auto-brightness is enabled

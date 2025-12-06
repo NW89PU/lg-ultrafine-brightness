@@ -47,7 +47,9 @@ public:
 
     // ISensorEvents methods
     STDMETHODIMP OnStateChanged(ISensor* pSensor, SensorState state) {
+#ifdef _DEBUG
         std::wcout << L"[ALS Event] OnStateChanged: " << state << std::endl;
+#endif
         return S_OK;
     }
 
@@ -68,7 +70,9 @@ public:
                 lux = static_cast<float>(var.dblVal);
             }
 
+#ifdef _DEBUG
             std::wcout << L"[ALS Event] OnDataUpdated: " << lux << L" lux" << std::endl;
+#endif
             m_owner->updateLux(lux);
         }
 
@@ -81,7 +85,9 @@ public:
     }
 
     STDMETHODIMP OnLeave(REFSENSOR_ID sensorID) {
+#ifdef _DEBUG
         std::wcout << L"[ALS Event] OnLeave" << std::endl;
+#endif
         return S_OK;
     }
 
@@ -105,12 +111,16 @@ bool ALSSensor::initialize() {
         return true;  // Already initialized
     }
 
+#ifdef _DEBUG
     std::wcout << L"=== Initializing Windows Sensor API for ALS ===\n" << std::endl;
+#endif
 
     // Initialize COM
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
+#ifdef _DEBUG
         std::wcout << L"Failed to initialize COM: 0x" << std::hex << hr << std::dec << std::endl;
+#endif
         return false;
     }
 
@@ -120,7 +130,9 @@ bool ALSSensor::initialize() {
                           IID_PPV_ARGS(&pSensorManager));
 
     if (FAILED(hr)) {
+#ifdef _DEBUG
         std::wcout << L"Failed to create SensorManager: 0x" << std::hex << hr << std::dec << std::endl;
+#endif
         return false;
     }
 
@@ -131,7 +143,9 @@ bool ALSSensor::initialize() {
     hr = pSensorManager->GetSensorsByType(SENSOR_TYPE_AMBIENT_LIGHT, &pSensorCollection);
 
     if (FAILED(hr)) {
+#ifdef _DEBUG
         std::wcout << L"Failed to get sensors by type: 0x" << std::hex << hr << std::dec << std::endl;
+#endif
         pSensorManager->Release();
         m_sensorManager = nullptr;
         return false;
@@ -139,10 +153,14 @@ bool ALSSensor::initialize() {
 
     ULONG count = 0;
     pSensorCollection->GetCount(&count);
+#ifdef _DEBUG
     std::wcout << L"Found " << count << L" ambient light sensor(s)" << std::endl;
+#endif
 
     if (count == 0) {
+#ifdef _DEBUG
         std::wcout << L"No ambient light sensors found!" << std::endl;
+#endif
         pSensorCollection->Release();
         pSensorManager->Release();
         m_sensorManager = nullptr;
@@ -155,7 +173,9 @@ bool ALSSensor::initialize() {
     pSensorCollection->Release();
 
     if (FAILED(hr)) {
+#ifdef _DEBUG
         std::wcout << L"Failed to get sensor: 0x" << std::hex << hr << std::dec << std::endl;
+#endif
         pSensorManager->Release();
         m_sensorManager = nullptr;
         return false;
@@ -176,7 +196,9 @@ bool ALSSensor::initialize() {
     hr = pSensor->SetEventSink(pEventSink);
 
     if (FAILED(hr)) {
+#ifdef _DEBUG
         std::wcout << L"Failed to set event sink: 0x" << std::hex << hr << std::dec << std::endl;
+#endif
         pEventSink->Release();
         pSensor->Release();
         m_sensor = nullptr;
@@ -186,7 +208,9 @@ bool ALSSensor::initialize() {
     }
 
     m_eventSink = pEventSink;
+#ifdef _DEBUG
     std::wcout << L"Event sink registered successfully" << std::endl;
+#endif
 
     // Set report interval to 500ms
     IPortableDeviceValues* pValues = NULL;
@@ -201,9 +225,13 @@ bool ALSSensor::initialize() {
         if (SUCCEEDED(hr)) {
             hr = pSensor->SetProperties(pValues, NULL);
             if (SUCCEEDED(hr)) {
+#ifdef _DEBUG
                 std::wcout << L"Set report interval to 500ms" << std::endl;
+#endif
             } else {
+#ifdef _DEBUG
                 std::wcout << L"SetProperties failed: 0x" << std::hex << hr << std::dec << std::endl;
+#endif
             }
         }
 
@@ -225,14 +253,18 @@ bool ALSSensor::initialize() {
             } else if (var.vt == VT_R8) {
                 m_lastLux = static_cast<float>(var.dblVal);
             }
+#ifdef _DEBUG
             std::wcout << L"Initial lux reading: " << m_lastLux << L" lux" << std::endl;
+#endif
         }
 
         PropVariantClear(&var);
         pReport->Release();
     }
 
+#ifdef _DEBUG
     std::wcout << L"Successfully initialized ALS: " << m_sensorName << std::endl;
+#endif
 
     m_available = true;
     return true;
