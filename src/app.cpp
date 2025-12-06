@@ -249,9 +249,11 @@ int Application::run() {
             m_ui->beginFrame();
             m_ui->renderMainUI();
             m_ui->endFrame();
+            // Limit to ~60 FPS to reduce CPU usage
+            Sleep(16);
         } else {
             // Sleep a bit to reduce CPU usage when hidden
-            Sleep(100);
+            Sleep(10);  // 10ms for responsive hotkeys
         }
     }
 
