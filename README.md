@@ -33,16 +33,8 @@ A sleek Windows application for controlling LG Ultrafine 4K/5K monitor brightnes
 
 - **Slider**: Drag the slider in the main window
 - **Hotkeys**:
-  - `Ctrl + Volume Up` - Increase brightness by 5%
-  - `Ctrl + Volume Down` - Decrease brightness by 5%
-- **Tray Icon**: Double-click to show/hide the window
-
-### Window Management
-
-- **Close Button (X)**: Hides to system tray (app keeps running)
-- **Minimize Button**: Minimizes to taskbar
-- **ESC Key**: Hides window to system tray
-- **Tray Menu**: Right-click tray icon for Show/Exit options
+  - `Ctrl + Alt + Up` - Increase brightness.
+  - `Ctrl + Alt + Down` - Decrease brightness.
 
 ## 🛠️ Building from Source
 
@@ -52,6 +44,7 @@ A sleek Windows application for controlling LG Ultrafine 4K/5K monitor brightnes
 - Visual Studio 2019 or later (with C++ desktop development)
 - CMake 3.20+
 - Git
+- Ninja
 
 ### Build Steps
 
@@ -66,17 +59,11 @@ git submodule update --init --recursive
 # Configure (from Visual Studio Developer Command Prompt)
 mkdir build
 cd build
-cmake .. -G "Visual Studio 17 2022" -A x64
 
-# Build Debug version
-cmake --build . --config Debug
+cmake ..
 
-# Or build Release version
 cmake --build . --config Release
 
-# Output binaries
-# Debug: build/Debug/LGUltrafineBrightness.exe
-# Release: build/Release/LGUltrafineBrightness.exe
 ```
 
 **Alternative with Ninja:**
@@ -91,51 +78,5 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
 ninja
 
 # Output binary
-# build/LGUltrafineBrightness.exe
+# build/Release/LGUltrafineBrightness.exe
 ```
-
-## 🏗️ Architecture
-
-The application is built with a modular architecture:
-
-- **HID Communication** - Direct USB HID control using hidapi
-- **UI Rendering** - Modern dark theme with ImGui + DirectX 11
-- **System Integration** - Tray icon, hotkeys, and single-instance management
-- **Brightness Control** - Smart stepped adjustment with 0-100% range
-
-## 🔌 Dependencies
-
-- [hidapi](https://github.com/libusb/hidapi) - USB HID communication
-- [Dear ImGui](https://github.com/ocornut/imgui) - Immediate mode GUI
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Thanks to the hidapi and Dear ImGui communities
-- Inspired by macOS's native brightness control for LG Ultrafine displays
-
-## ⚠️ Troubleshooting
-
-**Monitor not detected:**
-- Ensure your LG Ultrafine monitor is connected via USB-C/Thunderbolt
-- Try unplugging and reconnecting the monitor
-- Check Windows Device Manager for HID devices
-
-**Hotkeys not working:**
-- Make sure no other application is using the same key combination
-- Try restarting the application with administrator privileges
-
-## 📞 Support
-
-If you encounter any issues, please [open an issue](../../issues) on GitHub.
-
----
-
-Made with ❤️ for LG Ultrafine users on Windows
