@@ -415,7 +415,7 @@ void UIRenderer::renderMainUI() {
 
     // Hotkey info
     {
-        const char* info = "Hotkeys: Ctrl+Volume Up/Down";
+        const char* info = "Hotkeys: Ctrl+Alt Up/Down";
         float textWidth = ImGui::CalcTextSize(info).x;
         ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
         ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "%s", info);

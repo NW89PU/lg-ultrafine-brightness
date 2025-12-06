@@ -97,7 +97,7 @@ bool Application::createWindow(HINSTANCE hInstance) {
 
     // Calculate DPI-scaled client area size
     int clientWidth = static_cast<int>(350 * dpiScale);
-    int clientHeight = static_cast<int>(420 * dpiScale);
+    int clientHeight = static_cast<int>(460 * dpiScale);
 
     // Adjust for window frame and title bar
     RECT rect = { 0, 0, clientWidth, clientHeight };
