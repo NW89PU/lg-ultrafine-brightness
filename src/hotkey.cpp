@@ -20,34 +20,18 @@ void HotkeyManager::shutdown() {
 bool HotkeyManager::registerDefaultHotkeys() {
     bool success = true;
 
-    // Ctrl+Alt+Up - Brightness up (big step)
+    // Ctrl+VolumeUp - Brightness up
     if (RegisterHotKey(m_hwnd, static_cast<int>(HotkeyId::BrightnessUp),
-                       MOD_CONTROL | MOD_ALT, VK_UP)) {
+                       MOD_CONTROL, VK_VOLUME_UP)) {
         m_registeredIds.push_back(static_cast<int>(HotkeyId::BrightnessUp));
     } else {
         success = false;
     }
 
-    // Ctrl+Alt+Down - Brightness down (big step)
+    // Ctrl+VolumeDown - Brightness down
     if (RegisterHotKey(m_hwnd, static_cast<int>(HotkeyId::BrightnessDown),
-                       MOD_CONTROL | MOD_ALT, VK_DOWN)) {
+                       MOD_CONTROL, VK_VOLUME_DOWN)) {
         m_registeredIds.push_back(static_cast<int>(HotkeyId::BrightnessDown));
-    } else {
-        success = false;
-    }
-
-    // Ctrl+Alt+Shift+Up - Brightness up (small step)
-    if (RegisterHotKey(m_hwnd, static_cast<int>(HotkeyId::BrightnessUpSmall),
-                       MOD_CONTROL | MOD_ALT | MOD_SHIFT, VK_UP)) {
-        m_registeredIds.push_back(static_cast<int>(HotkeyId::BrightnessUpSmall));
-    } else {
-        success = false;
-    }
-
-    // Ctrl+Alt+Shift+Down - Brightness down (small step)
-    if (RegisterHotKey(m_hwnd, static_cast<int>(HotkeyId::BrightnessDownSmall),
-                       MOD_CONTROL | MOD_ALT | MOD_SHIFT, VK_DOWN)) {
-        m_registeredIds.push_back(static_cast<int>(HotkeyId::BrightnessDownSmall));
     } else {
         success = false;
     }

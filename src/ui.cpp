@@ -262,9 +262,6 @@ void UIRenderer::renderMainUI() {
         ImGui::TextColored(ImVec4(0.95f, 0.95f, 0.95f, 1.0f), "%s", title);
     }
 
-    ImGui::Spacing();
-    ImGui::Spacing();
-
     // Connection status
     {
         const char* status = m_connected ? "Connected" : "Disconnected";
@@ -279,7 +276,6 @@ void UIRenderer::renderMainUI() {
 
     ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Spacing();
     ImGui::Spacing();
 
     // Brightness control section
@@ -333,13 +329,12 @@ void UIRenderer::renderMainUI() {
     }
 
     ImGui::Spacing();
-    ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
 
     // Hotkey info
     {
-        const char* info = "Hotkeys: Ctrl+Alt+Up/Down";
+        const char* info = "Hotkeys: Ctrl+Volume Up/Down";
         float textWidth = ImGui::CalcTextSize(info).x;
         ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
         ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "%s", info);

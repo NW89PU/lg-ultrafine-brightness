@@ -1,6 +1,10 @@
 #include "app.h"
 #include <imgui.h>
 #include <imgui_impl_win32.h>
+#include <algorithm>
+
+#undef min
+#undef max
 
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -71,7 +75,7 @@ bool Application::createWindow(HINSTANCE hInstance) {
 
     // Calculate DPI-scaled client area size
     int clientWidth = static_cast<int>(350 * dpiScale);
-    int clientHeight = static_cast<int>(300 * dpiScale);
+    int clientHeight = static_cast<int>(260 * dpiScale);
 
     // Adjust for window frame and title bar
     RECT rect = { 0, 0, clientWidth, clientHeight };
@@ -124,31 +128,21 @@ void Application::setupCallbacks() {
         PostQuitMessage(0);
     });
 
-    // Hotkey callbacks
+    // Hotkey callbacks - fixed 5% step
     m_hotkey->setBrightnessUpCallback([this]() {
         if (m_brightness->isConnected()) {
-            m_brightness->stepUp(true);
+            int current = m_brightness->getBrightness();
+            int newVal = std::min(100, current + 5);
+            m_brightness->setBrightness(newVal);
             refreshBrightness();
         }
     });
 
     m_hotkey->setBrightnessDownCallback([this]() {
         if (m_brightness->isConnected()) {
-            m_brightness->stepDown(true);
-            refreshBrightness();
-        }
-    });
-
-    m_hotkey->setBrightnessUpSmallCallback([this]() {
-        if (m_brightness->isConnected()) {
-            m_brightness->stepUp(false);
-            refreshBrightness();
-        }
-    });
-
-    m_hotkey->setBrightnessDownSmallCallback([this]() {
-        if (m_brightness->isConnected()) {
-            m_brightness->stepDown(false);
+            int current = m_brightness->getBrightness();
+            int newVal = std::max(0, current - 5);
+            m_brightness->setBrightness(newVal);
             refreshBrightness();
         }
     });
