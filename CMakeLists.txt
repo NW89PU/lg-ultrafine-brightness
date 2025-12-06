@@ -56,6 +56,9 @@ set(HEADERS
 # Create executable (WIN32 for no console window)
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} src/resource.rc)
 
+# Force Unicode character set
+target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
+
 # Include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src

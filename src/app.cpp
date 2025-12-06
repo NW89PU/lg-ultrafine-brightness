@@ -94,7 +94,7 @@ bool Application::createWindow(HINSTANCE hInstance) {
     int y = (screenHeight - height) / 2;
 
     m_hwnd = CreateWindowExW(
-        WS_EX_TOPMOST,
+        0,
         wc.lpszClassName,
         L"LG Ultrafine Brightness",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
@@ -238,6 +238,13 @@ LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
     Application* app = s_instance;
 
     switch (msg) {
+    case WM_SHOWWINDOW_FROM_INSTANCE:
+        // Another instance wants to show this window
+        if (app) {
+            app->showWindow();
+        }
+        return 0;
+
     case WM_SIZE:
         if (app && app->m_ui && app->m_ui->getDevice() != nullptr && wParam != SIZE_MINIMIZED) {
             // Handle resize if needed

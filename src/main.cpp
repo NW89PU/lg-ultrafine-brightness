@@ -1,6 +1,9 @@
 #include <Windows.h>
 #include "app.h"
 
+// Custom message for showing window from another instance
+constexpr UINT WM_SHOWWINDOW_FROM_INSTANCE = WM_USER + 100;
+
 int WINAPI WinMain(
     _In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -10,11 +13,11 @@ int WINAPI WinMain(
     // Prevent multiple instances
     HANDLE hMutex = CreateMutexW(nullptr, TRUE, L"LGUltrafineBrightnessMutex");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        // Another instance is running, find it and show its window
+        // Another instance is running, send message to show its window
         HWND existingWindow = FindWindowW(L"LGUltrafineBrightnessClass", nullptr);
         if (existingWindow) {
-            ShowWindow(existingWindow, SW_SHOW);
-            SetForegroundWindow(existingWindow);
+            // Send custom message to properly show the window
+            PostMessageW(existingWindow, WM_SHOWWINDOW_FROM_INSTANCE, 0, 0);
         }
         return 0;
     }

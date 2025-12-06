@@ -10,6 +10,9 @@
 
 namespace app {
 
+// Custom message for showing window from another instance
+constexpr UINT WM_SHOWWINDOW_FROM_INSTANCE = WM_USER + 100;
+
 class Application {
 public:
     Application();
