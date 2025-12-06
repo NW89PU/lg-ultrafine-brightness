@@ -232,6 +232,12 @@ void UIRenderer::setMonitorName(const std::wstring& name) {
     WideCharToMultiByte(CP_UTF8, 0, name.c_str(), -1, m_monitorName.data(), size, nullptr, nullptr);
 }
 
+void UIRenderer::setALSName(const std::wstring& name) {
+    int size = WideCharToMultiByte(CP_UTF8, 0, name.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    m_alsName.resize(size);
+    WideCharToMultiByte(CP_UTF8, 0, name.c_str(), -1, m_alsName.data(), size, nullptr, nullptr);
+}
+
 void UIRenderer::renderMainUI() {
     ImGuiIO& io = ImGui::GetIO();
     float s = m_dpiScale;
@@ -290,11 +296,19 @@ void UIRenderer::renderMainUI() {
         // Brightness slider
         ImGui::SetNextItemWidth(contentWidth - 60.0f * s);
         int brightness = m_currentBrightness;
+        if (m_autoBrightnessEnabled) {
+            ImGui::BeginDisabled();
+        }
         if (ImGui::SliderInt("##brightness", &brightness, 0, 100, "")) {
-            m_currentBrightness = brightness;
-            if (m_brightnessCallback) {
-                m_brightnessCallback(brightness);
+            if (!m_autoBrightnessEnabled) {
+                m_currentBrightness = brightness;
+                if (m_brightnessCallback) {
+                    m_brightnessCallback(brightness);
+                }
             }
+        }
+        if (m_autoBrightnessEnabled) {
+            ImGui::EndDisabled();
         }
 
         ImGui::SameLine();
@@ -312,6 +326,73 @@ void UIRenderer::renderMainUI() {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.55f, 0.15f, 1.0f));
             ImGui::Text("%s", buf);
             ImGui::PopStyleColor();
+        }
+
+        ImGui::Spacing();
+        ImGui::Spacing();
+
+        // Auto-brightness section
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (m_hasALS) {
+            // Show ALS sensor info
+            {
+                const char* alsTitle = "Ambient Light Sensor";
+                float textWidth = ImGui::CalcTextSize(alsTitle).x;
+                ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+                ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", alsTitle);
+            }
+
+            ImGui::Spacing();
+
+            // ALS device name
+            if (!m_alsName.empty()) {
+                float textWidth = ImGui::CalcTextSize(m_alsName.c_str()).x;
+                ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+                ImGui::TextColored(ImVec4(0.3f, 0.85f, 0.4f, 1.0f), "%s", m_alsName.c_str());
+            }
+
+            ImGui::Spacing();
+
+            // Ambient light value (always show, even if 0)
+            {
+                char luxBuf[64];
+                snprintf(luxBuf, sizeof(luxBuf), "%.1f lux", m_ambientLight);
+                float textWidth = ImGui::CalcTextSize(luxBuf).x;
+                ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.75f, 0.2f, 1.0f));
+                ImGui::Text("%s", luxBuf);
+                ImGui::PopStyleColor();
+            }
+
+            ImGui::Spacing();
+
+            // Auto-brightness checkbox
+            {
+                bool autoEnabled = m_autoBrightnessEnabled;
+                float checkboxWidth = ImGui::CalcTextSize("Auto Brightness").x + 30.0f * s;
+                ImGui::SetCursorPosX((windowWidth - checkboxWidth) * 0.5f);
+                if (ImGui::Checkbox("Auto Brightness", &autoEnabled)) {
+                    m_autoBrightnessEnabled = autoEnabled;
+                    if (m_autoBrightnessCallback) {
+                        m_autoBrightnessCallback(autoEnabled);
+                    }
+                }
+            }
+        } else {
+            // ALS not supported
+            const char* alsTitle = "Ambient Light Sensor";
+            float textWidth = ImGui::CalcTextSize(alsTitle).x;
+            ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", alsTitle);
+
+            ImGui::Spacing();
+
+            const char* notSupported = "Not Supported";
+            textWidth = ImGui::CalcTextSize(notSupported).x;
+            ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+            ImGui::TextColored(ImVec4(0.85f, 0.3f, 0.3f, 1.0f), "%s", notSupported);
         }
     } else {
         // Not connected message

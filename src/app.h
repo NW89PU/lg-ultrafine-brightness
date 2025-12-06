@@ -40,10 +40,15 @@ private:
     void hideWindow();
     void toggleWindow();
 
+    void updateAutoBrightness();
+
     HINSTANCE m_hInstance = nullptr;
     HWND m_hwnd = nullptr;
     bool m_running = true;
     bool m_windowVisible = true;
+
+    DWORD m_lastAutoBrightnessUpdate = 0;
+    static constexpr DWORD AUTO_BRIGHTNESS_INTERVAL_MS = 500;  // Update every 500ms
 
     std::unique_ptr<brightness::BrightnessController> m_brightness;
     std::unique_ptr<ui::UIRenderer> m_ui;

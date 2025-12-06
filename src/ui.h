@@ -35,9 +35,21 @@ public:
         m_closeCallback = callback;
     }
 
+    // Set auto-brightness callback
+    using AutoBrightnessCallback = std::function<void(bool)>;
+    void setAutoBrightnessCallback(AutoBrightnessCallback callback) {
+        m_autoBrightnessCallback = callback;
+    }
+
     // Update displayed brightness
     void setBrightness(int brightness) { m_currentBrightness = brightness; }
     int getBrightness() const { return m_currentBrightness; }
+
+    // Set auto-brightness state
+    void setAutoBrightnessEnabled(bool enabled) { m_autoBrightnessEnabled = enabled; }
+    void setAmbientLight(float lux) { m_ambientLight = lux; }
+    void setHasALS(bool hasALS) { m_hasALS = hasALS; }
+    void setALSName(const std::wstring& name);
 
     // Set connected status
     void setConnected(bool connected) { m_connected = connected; }
@@ -67,8 +79,14 @@ private:
     std::string m_monitorName = "LG Ultrafine";
     float m_dpiScale = 1.0f;
 
+    bool m_autoBrightnessEnabled = false;
+    float m_ambientLight = 0.0f;
+    bool m_hasALS = false;
+    std::string m_alsName;
+
     BrightnessChangedCallback m_brightnessCallback;
     CloseCallback m_closeCallback;
+    AutoBrightnessCallback m_autoBrightnessCallback;
 };
 
 } // namespace ui

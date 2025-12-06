@@ -1,7 +1,16 @@
 #include "brightness.h"
-#include <hidapi.h>
+
+#include "app.h"
+#include "als_sensor.h"
+
 #include <algorithm>
 #include <cstring>
+#include <hidapi.h>
+#include <iostream>
+#include <iomanip>
+
+#undef min
+#undef max
 
 namespace brightness {
 
@@ -80,6 +89,11 @@ bool BrightnessController::initialize() {
 }
 
 void BrightnessController::shutdown() {
+    if (m_alsSensor) {
+        m_alsSensor->shutdown();
+        m_alsSensor.reset();
+    }
+
     if (m_handle) {
         hid_close(static_cast<hid_device*>(m_handle));
         m_handle = nullptr;
@@ -169,6 +183,91 @@ uint16_t BrightnessController::percentToRaw(int percent) {
     percent = std::clamp(percent, 0, 100);
     float range = MAX_BRIGHTNESS - MIN_BRIGHTNESS;
     return static_cast<uint16_t>(MIN_BRIGHTNESS + (range * percent / 100.0f));
+}
+
+// ============================================================================
+// Ambient Light Sensor (ALS) Support - Using Windows Sensor API
+// ============================================================================
+
+bool BrightnessController::initializeALS() {
+    if (m_alsSensor && m_alsSensor->isAvailable()) {
+        return true;  // Already initialized
+    }
+
+    m_alsSensor = std::make_unique<als::ALSSensor>();
+    return m_alsSensor->initialize();
+}
+
+bool BrightnessController::hasALS() const {
+    return m_alsSensor && m_alsSensor->isAvailable();
+}
+
+std::wstring BrightnessController::getALSName() const {
+    if (m_alsSensor && m_alsSensor->isAvailable()) {
+        return m_alsSensor->getSensorName();
+    }
+    return L"No ALS";
+}
+
+float BrightnessController::getAmbientLight() {
+    if (!m_alsSensor || !m_alsSensor->isAvailable()) {
+        return m_lastAmbientLight;
+    }
+
+    m_lastAmbientLight = m_alsSensor->getLux();
+    return m_lastAmbientLight;
+}
+
+void BrightnessController::setAutoBrightness(bool enabled) {
+    if (enabled && (!m_alsSensor || !m_alsSensor->isAvailable())) {
+        // Try to initialize ALS if not already done
+        initializeALS();
+    }
+    m_autoBrightnessEnabled = enabled && m_alsSensor && m_alsSensor->isAvailable();
+}
+
+void BrightnessController::updateAutoBrightness() {
+    if (!m_autoBrightnessEnabled || !m_alsSensor || !m_alsSensor->isAvailable()) {
+        return;
+    }
+
+    float lux = getAmbientLight();
+
+    // Auto-brightness algorithm: map lux to brightness percentage
+    // Based on typical indoor/outdoor lighting levels:
+    // - 0-50 lux: very dark (10-20% brightness)
+    // - 50-200 lux: dim indoor (20-40% brightness)
+    // - 200-500 lux: normal indoor (40-70% brightness)
+    // - 500-1000 lux: bright indoor (70-90% brightness)
+    // - 1000+ lux: very bright/outdoor (90-100% brightness)
+
+    int targetBrightness = 10;  // Default minimum
+
+    if (lux < 50.0f) {
+        // Very dark: 10-20%
+        targetBrightness = 10 + static_cast<int>(lux * 0.2f);
+    } else if (lux < 200.0f) {
+        // Dim indoor: 20-40%
+        targetBrightness = 20 + static_cast<int>((lux - 50.0f) * 0.133f);
+    } else if (lux < 500.0f) {
+        // Normal indoor: 40-70%
+        targetBrightness = 40 + static_cast<int>((lux - 200.0f) * 0.1f);
+    } else if (lux < 1000.0f) {
+        // Bright indoor: 70-90%
+        targetBrightness = 70 + static_cast<int>((lux - 500.0f) * 0.04f);
+    } else {
+        // Very bright/outdoor: 90-100%
+        float excess = std::min(lux - 1000.0f, 1000.0f);
+        targetBrightness = 90 + static_cast<int>(excess * 0.01f);
+    }
+
+    targetBrightness = std::clamp(targetBrightness, 10, 100);
+
+    // Apply smooth adjustment: only change if difference is significant (>5%)
+    int currentBrightness = getBrightness();
+    if (std::abs(currentBrightness - targetBrightness) > 5) {
+        setBrightness(targetBrightness);
+    }
 }
 
 } // namespace brightness

@@ -4,6 +4,12 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
+
+// Forward declaration
+namespace als {
+    class ALSSensor;
+}
 
 namespace brightness {
 
@@ -55,11 +61,27 @@ public:
     using BrightnessCallback = std::function<void(int)>;
     void setCallback(BrightnessCallback callback) { m_callback = callback; }
 
+    // Ambient Light Sensor (ALS) support
+    bool initializeALS();
+    bool hasALS() const;
+    float getAmbientLight();  // Returns lux value
+    std::wstring getALSName() const;
+
+    // Auto-brightness control
+    void setAutoBrightness(bool enabled);
+    bool isAutoBrightnessEnabled() const { return m_autoBrightnessEnabled; }
+    void updateAutoBrightness();  // Call periodically to adjust brightness based on ambient light
+
 private:
     void* m_handle = nullptr;
     bool m_connected = false;
     std::wstring m_monitorName;
     BrightnessCallback m_callback;
+
+    // ALS members
+    std::unique_ptr<als::ALSSensor> m_alsSensor;
+    bool m_autoBrightnessEnabled = false;
+    float m_lastAmbientLight = 0.0f;
 
     uint16_t findNextStep(uint16_t val, const std::vector<uint16_t>& steps);
     uint16_t findPrevStep(uint16_t val, const std::vector<uint16_t>& steps);

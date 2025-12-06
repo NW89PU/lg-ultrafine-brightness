@@ -39,6 +39,7 @@ target_link_libraries(imgui PUBLIC d3d11 dxgi)
 set(SOURCES
     src/main.cpp
     src/brightness.cpp
+    src/als_sensor.cpp
     src/ui.cpp
     src/tray.cpp
     src/hotkey.cpp
@@ -47,6 +48,7 @@ set(SOURCES
 
 set(HEADERS
     src/brightness.h
+    src/als_sensor.h
     src/ui.h
     src/tray.h
     src/hotkey.h
@@ -69,6 +71,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     hidapi::hidapi
     imgui
     dwmapi
+    sensorsapi
+    oleaut32
 )
 
 # Set subsystem to Windows and disable auto-manifest (we provide one in resource.rc)

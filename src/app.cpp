@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <algorithm>
+#include <iostream>
 
 #undef min
 #undef max
@@ -44,6 +45,17 @@ bool Application::initialize(HINSTANCE hInstance) {
     if (connected) {
         m_ui->setMonitorName(m_brightness->getMonitorName());
         m_ui->setBrightness(m_brightness->getBrightness());
+
+        // Try to initialize ALS
+        std::wcout << L"[App] Attempting to initialize ALS..." << std::endl;
+        bool hasALS = m_brightness->initializeALS();
+        std::wcout << L"[App] ALS initialization result: " << (hasALS ? L"SUCCESS" : L"FAILED") << std::endl;
+        m_ui->setHasALS(hasALS);
+        if (hasALS) {
+            std::wstring alsName = m_brightness->getALSName();
+            std::wcout << L"[App] ALS Name: " << alsName << std::endl;
+            m_ui->setALSName(alsName);
+        }
     }
 
     // Initialize tray icon
@@ -79,7 +91,7 @@ bool Application::createWindow(HINSTANCE hInstance) {
 
     // Calculate DPI-scaled client area size
     int clientWidth = static_cast<int>(350 * dpiScale);
-    int clientHeight = static_cast<int>(260 * dpiScale);
+    int clientHeight = static_cast<int>(800 * dpiScale);  // Increased for debug info
 
     // Adjust for window frame and title bar
     RECT rect = { 0, 0, clientWidth, clientHeight };
@@ -120,6 +132,14 @@ void Application::setupCallbacks() {
     // UI close button callback
     m_ui->setCloseCallback([this]() {
         hideWindow();
+    });
+
+    // Auto-brightness callback
+    m_ui->setAutoBrightnessCallback([this](bool enabled) {
+        if (m_brightness) {
+            m_brightness->setAutoBrightness(enabled);
+            m_ui->setAutoBrightnessEnabled(enabled);
+        }
     });
 
     // Tray callbacks
@@ -205,6 +225,9 @@ int Application::run() {
 
         if (!m_running) break;
 
+        // Update auto-brightness if enabled
+        updateAutoBrightness();
+
         // Only render when window is visible
         if (m_windowVisible) {
             m_ui->beginFrame();
@@ -289,6 +312,37 @@ LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
     }
 
     return DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
+void Application::updateAutoBrightness() {
+    static int callCount = 0;
+    if (++callCount % 10 == 0) {  // Only log every 10th call to avoid spam
+        std::wcout << L"[App] updateAutoBrightness called " << callCount << L" times" << std::endl;
+    }
+
+    if (!m_brightness || !m_brightness->hasALS()) {
+        if (callCount % 10 == 0) {
+            std::wcout << L"[App] No ALS available, hasALS=" << (m_brightness ? m_brightness->hasALS() : false) << std::endl;
+        }
+        return;  // No ALS available
+    }
+
+    DWORD currentTime = GetTickCount();
+    if (currentTime - m_lastAutoBrightnessUpdate >= AUTO_BRIGHTNESS_INTERVAL_MS) {
+        // Always update ambient light reading in UI (even if auto-brightness is off)
+        float ambientLight = m_brightness->getAmbientLight();
+        std::wcout << L"[App] Updating UI with lux: " << ambientLight << std::endl;
+        m_ui->setAmbientLight(ambientLight);
+
+        // Only adjust brightness if auto-brightness is enabled
+        if (m_brightness->isAutoBrightnessEnabled()) {
+            m_brightness->updateAutoBrightness();
+            // Update UI to reflect brightness changes
+            refreshBrightness();
+        }
+
+        m_lastAutoBrightnessUpdate = currentTime;
+    }
 }
 
 } // namespace app
