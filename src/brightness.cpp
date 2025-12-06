@@ -105,13 +105,20 @@ void BrightnessController::shutdown() {
 uint16_t BrightnessController::getRawBrightness() {
     if (!m_handle) return MIN_BRIGHTNESS;
 
+    // Return cached value if available to avoid slow HID read
+    if (m_hasCachedValue) {
+        return m_cachedBrightness;
+    }
+
     uint8_t data[7] = { 0 };
     int res = hid_get_feature_report(static_cast<hid_device*>(m_handle), data, sizeof(data));
     if (res < 0) {
         return MIN_BRIGHTNESS;
     }
 
-    return data[1] + (data[2] << 8);
+    m_cachedBrightness = data[1] + (data[2] << 8);
+    m_hasCachedValue = true;
+    return m_cachedBrightness;
 }
 
 void BrightnessController::setRawBrightness(uint16_t val) {
@@ -128,6 +135,10 @@ void BrightnessController::setRawBrightness(uint16_t val) {
     };
 
     hid_send_feature_report(static_cast<hid_device*>(m_handle), data, sizeof(data));
+
+    // Update cache immediately after setting
+    m_cachedBrightness = val;
+    m_hasCachedValue = true;
 
     if (m_callback) {
         m_callback(rawToPercent(val));

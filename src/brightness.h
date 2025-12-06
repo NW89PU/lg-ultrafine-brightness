@@ -83,6 +83,10 @@ private:
     bool m_autoBrightnessEnabled = false;
     float m_lastAmbientLight = 0.0f;
 
+    // Cached brightness value to avoid redundant HID reads
+    uint16_t m_cachedBrightness = MIN_BRIGHTNESS;
+    bool m_hasCachedValue = false;
+
     uint16_t findNextStep(uint16_t val, const std::vector<uint16_t>& steps);
     uint16_t findPrevStep(uint16_t val, const std::vector<uint16_t>& steps);
     int rawToPercent(uint16_t raw);

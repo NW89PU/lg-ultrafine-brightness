@@ -20,17 +20,17 @@ void HotkeyManager::shutdown() {
 bool HotkeyManager::registerDefaultHotkeys() {
     bool success = true;
 
-    // Ctrl+VolumeUp - Brightness up
+    // Ctrl+Alt+Up - Brightness up
     if (RegisterHotKey(m_hwnd, static_cast<int>(HotkeyId::BrightnessUp),
-                       MOD_CONTROL, VK_VOLUME_UP)) {
+                       MOD_CONTROL | MOD_ALT, VK_UP)) {
         m_registeredIds.push_back(static_cast<int>(HotkeyId::BrightnessUp));
     } else {
         success = false;
     }
 
-    // Ctrl+VolumeDown - Brightness down
+    // Ctrl+Alt+Down - Brightness down
     if (RegisterHotKey(m_hwnd, static_cast<int>(HotkeyId::BrightnessDown),
-                       MOD_CONTROL, VK_VOLUME_DOWN)) {
+                       MOD_CONTROL | MOD_ALT, VK_DOWN)) {
         m_registeredIds.push_back(static_cast<int>(HotkeyId::BrightnessDown));
     } else {
         success = false;

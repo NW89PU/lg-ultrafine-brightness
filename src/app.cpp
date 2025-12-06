@@ -164,7 +164,12 @@ void Application::setupCallbacks() {
             int current = m_brightness->getBrightness();
             int newVal = std::min(100, current + 5);
             m_brightness->setBrightness(newVal);
-            refreshBrightness();
+            // Update UI directly with the new value (no HID read needed)
+            m_ui->setBrightness(newVal);
+            // Update tray tooltip
+            wchar_t tooltip[64];
+            swprintf_s(tooltip, L"LG Ultrafine Brightness: %d%%", newVal);
+            m_tray->setTooltip(tooltip);
         }
     });
 
@@ -173,7 +178,12 @@ void Application::setupCallbacks() {
             int current = m_brightness->getBrightness();
             int newVal = std::max(0, current - 5);
             m_brightness->setBrightness(newVal);
-            refreshBrightness();
+            // Update UI directly with the new value (no HID read needed)
+            m_ui->setBrightness(newVal);
+            // Update tray tooltip
+            wchar_t tooltip[64];
+            swprintf_s(tooltip, L"LG Ultrafine Brightness: %d%%", newVal);
+            m_tray->setTooltip(tooltip);
         }
     });
 }
