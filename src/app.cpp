@@ -252,11 +252,8 @@ LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
         return 0;
 
     case WM_SYSCOMMAND:
-        // Minimize to tray instead of taskbar
-        if ((wParam & 0xFFF0) == SC_MINIMIZE) {
-            if (app) app->hideWindow();
-            return 0;
-        }
+        // Allow normal minimize behavior
+        // Only intercept close, not minimize
         break;
 
     case WM_CLOSE:
