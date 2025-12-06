@@ -64,9 +64,14 @@ bool Application::createWindow(HINSTANCE hInstance) {
 
     RegisterClassExW(&wc);
 
-    // Calculate centered position
-    int width = 350;
-    int height = 320;
+    // Get DPI scale
+    HDC hdc = GetDC(nullptr);
+    float dpiScale = GetDeviceCaps(hdc, LOGPIXELSX) / 96.0f;
+    ReleaseDC(nullptr, hdc);
+
+    // Calculate DPI-scaled size and centered position
+    int width = static_cast<int>(350 * dpiScale);
+    int height = static_cast<int>(320 * dpiScale);
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
     int x = (screenWidth - width) / 2;
@@ -76,7 +81,7 @@ bool Application::createWindow(HINSTANCE hInstance) {
         WS_EX_TOPMOST,
         wc.lpszClassName,
         L"LG Ultrafine Brightness",
-        WS_POPUP | WS_VISIBLE,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         x, y, width, height,
         nullptr, nullptr, hInstance, nullptr);
 
@@ -94,6 +99,11 @@ void Application::setupCallbacks() {
     // UI brightness change callback
     m_ui->setBrightnessCallback([this](int percent) {
         updateBrightness(percent);
+    });
+
+    // UI close button callback
+    m_ui->setCloseCallback([this]() {
+        hideWindow();
     });
 
     // Tray callbacks

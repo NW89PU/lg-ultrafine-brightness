@@ -10,6 +10,26 @@
 
 namespace ui {
 
+// Get DPI scale factor for a window
+static float GetDpiScale(HWND hwnd) {
+    // Try GetDpiForWindow (Windows 10 1607+)
+    HMODULE user32 = GetModuleHandleW(L"user32.dll");
+    if (user32) {
+        typedef UINT (WINAPI *GetDpiForWindowFunc)(HWND);
+        auto getDpiForWindow = (GetDpiForWindowFunc)GetProcAddress(user32, "GetDpiForWindow");
+        if (getDpiForWindow) {
+            UINT dpi = getDpiForWindow(hwnd);
+            return dpi / 96.0f;
+        }
+    }
+
+    // Fallback: use DC
+    HDC hdc = GetDC(hwnd);
+    float scale = GetDeviceCaps(hdc, LOGPIXELSX) / 96.0f;
+    ReleaseDC(hwnd, hdc);
+    return scale;
+}
+
 UIRenderer::UIRenderer() = default;
 
 UIRenderer::~UIRenderer() {
@@ -18,6 +38,7 @@ UIRenderer::~UIRenderer() {
 
 bool UIRenderer::initialize(HWND hwnd) {
     m_hwnd = hwnd;
+    m_dpiScale = GetDpiScale(hwnd);
 
     if (!createDeviceD3D(hwnd)) {
         return false;
@@ -34,8 +55,9 @@ bool UIRenderer::initialize(HWND hwnd) {
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(m_device, m_context);
 
-    // Load font with larger size for better readability
-    io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
+    // Load font with DPI-scaled size
+    float fontSize = 18.0f * m_dpiScale;
+    io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", fontSize);
 
     applyDarkTheme();
 
@@ -126,19 +148,24 @@ void UIRenderer::endFrame() {
 
 void UIRenderer::applyDarkTheme() {
     ImGuiStyle& style = ImGui::GetStyle();
+    float s = m_dpiScale; // Scale factor
 
-    // Rounding
-    style.WindowRounding = 10.0f;
-    style.FrameRounding = 6.0f;
-    style.GrabRounding = 6.0f;
-    style.PopupRounding = 6.0f;
-    style.ScrollbarRounding = 6.0f;
+    // Rounding (scaled)
+    style.WindowRounding = 10.0f * s;
+    style.FrameRounding = 6.0f * s;
+    style.GrabRounding = 6.0f * s;
+    style.PopupRounding = 6.0f * s;
+    style.ScrollbarRounding = 6.0f * s;
 
-    // Spacing
-    style.WindowPadding = ImVec2(20, 20);
-    style.FramePadding = ImVec2(10, 8);
-    style.ItemSpacing = ImVec2(10, 10);
-    style.ItemInnerSpacing = ImVec2(8, 6);
+    // Spacing (scaled)
+    style.WindowPadding = ImVec2(20 * s, 20 * s);
+    style.FramePadding = ImVec2(10 * s, 8 * s);
+    style.ItemSpacing = ImVec2(10 * s, 10 * s);
+    style.ItemInnerSpacing = ImVec2(8 * s, 6 * s);
+
+    // Sizes (scaled)
+    style.ScrollbarSize = 14.0f * s;
+    style.GrabMinSize = 12.0f * s;
 
     // Borders
     style.WindowBorderSize = 0.0f;
@@ -207,6 +234,7 @@ void UIRenderer::setMonitorName(const std::wstring& name) {
 
 void UIRenderer::renderMainUI() {
     ImGuiIO& io = ImGui::GetIO();
+    float s = m_dpiScale;
 
     // Full window ImGui frame
     ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -223,7 +251,7 @@ void UIRenderer::renderMainUI() {
 
     // Center content
     float windowWidth = ImGui::GetWindowWidth();
-    float contentWidth = windowWidth - 40.0f;
+    float contentWidth = windowWidth - 40.0f * s;
 
     // Title
     {
@@ -256,14 +284,14 @@ void UIRenderer::renderMainUI() {
     // Brightness control section
     if (m_connected) {
         // Sun icons and slider
-        ImGui::SetCursorPosX(20.0f);
+        ImGui::SetCursorPosX(20.0f * s);
 
         // Left sun icon (dim)
         ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), " ");
         ImGui::SameLine();
 
         // Brightness slider
-        ImGui::SetNextItemWidth(contentWidth - 60.0f);
+        ImGui::SetNextItemWidth(contentWidth - 60.0f * s);
         int brightness = m_currentBrightness;
         if (ImGui::SliderInt("##brightness", &brightness, 0, 100, "")) {
             m_currentBrightness = brightness;
@@ -293,25 +321,25 @@ void UIRenderer::renderMainUI() {
         ImGui::Spacing();
 
         // Quick buttons
-        float buttonWidth = (contentWidth - 30.0f) / 4.0f;
-        ImGui::SetCursorPosX(20.0f);
+        float buttonWidth = (contentWidth - 30.0f * s) / 4.0f;
+        ImGui::SetCursorPosX(20.0f * s);
 
-        if (ImGui::Button("25%", ImVec2(buttonWidth, 35))) {
+        if (ImGui::Button("25%", ImVec2(buttonWidth, 35 * s))) {
             m_currentBrightness = 25;
             if (m_brightnessCallback) m_brightnessCallback(25);
         }
         ImGui::SameLine();
-        if (ImGui::Button("50%", ImVec2(buttonWidth, 35))) {
+        if (ImGui::Button("50%", ImVec2(buttonWidth, 35 * s))) {
             m_currentBrightness = 50;
             if (m_brightnessCallback) m_brightnessCallback(50);
         }
         ImGui::SameLine();
-        if (ImGui::Button("75%", ImVec2(buttonWidth, 35))) {
+        if (ImGui::Button("75%", ImVec2(buttonWidth, 35 * s))) {
             m_currentBrightness = 75;
             if (m_brightnessCallback) m_brightnessCallback(75);
         }
         ImGui::SameLine();
-        if (ImGui::Button("100%", ImVec2(buttonWidth, 35))) {
+        if (ImGui::Button("100%", ImVec2(buttonWidth, 35 * s))) {
             m_currentBrightness = 100;
             if (m_brightnessCallback) m_brightnessCallback(100);
         }

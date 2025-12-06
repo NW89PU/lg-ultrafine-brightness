@@ -29,6 +29,12 @@ public:
         m_brightnessCallback = callback;
     }
 
+    // Set close callback
+    using CloseCallback = std::function<void()>;
+    void setCloseCallback(CloseCallback callback) {
+        m_closeCallback = callback;
+    }
+
     // Update displayed brightness
     void setBrightness(int brightness) { m_currentBrightness = brightness; }
     int getBrightness() const { return m_currentBrightness; }
@@ -59,8 +65,10 @@ private:
     int m_currentBrightness = 50;
     bool m_connected = false;
     std::string m_monitorName = "LG Ultrafine";
+    float m_dpiScale = 1.0f;
 
     BrightnessChangedCallback m_brightnessCallback;
+    CloseCallback m_closeCallback;
 };
 
 } // namespace ui
