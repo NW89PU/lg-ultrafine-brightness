@@ -69,9 +69,17 @@ bool Application::createWindow(HINSTANCE hInstance) {
     float dpiScale = GetDeviceCaps(hdc, LOGPIXELSX) / 96.0f;
     ReleaseDC(nullptr, hdc);
 
-    // Calculate DPI-scaled size and centered position
-    int width = static_cast<int>(350 * dpiScale);
-    int height = static_cast<int>(320 * dpiScale);
+    // Calculate DPI-scaled client area size
+    int clientWidth = static_cast<int>(350 * dpiScale);
+    int clientHeight = static_cast<int>(300 * dpiScale);
+
+    // Adjust for window frame and title bar
+    RECT rect = { 0, 0, clientWidth, clientHeight };
+    DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+    AdjustWindowRect(&rect, style, FALSE);
+    int width = rect.right - rect.left;
+    int height = rect.bottom - rect.top;
+
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
     int x = (screenWidth - width) / 2;

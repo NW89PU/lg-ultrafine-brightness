@@ -245,6 +245,7 @@ void UIRenderer::renderMainUI() {
         ImGuiWindowFlags_NoResize |
         ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoScrollbar |
         ImGuiWindowFlags_NoBringToFrontOnFocus;
 
     ImGui::Begin("##Main", nullptr, window_flags);
@@ -315,33 +316,6 @@ void UIRenderer::renderMainUI() {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.55f, 0.15f, 1.0f));
             ImGui::Text("%s", buf);
             ImGui::PopStyleColor();
-        }
-
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        // Quick buttons
-        float buttonWidth = (contentWidth - 30.0f * s) / 4.0f;
-        ImGui::SetCursorPosX(20.0f * s);
-
-        if (ImGui::Button("25%", ImVec2(buttonWidth, 35 * s))) {
-            m_currentBrightness = 25;
-            if (m_brightnessCallback) m_brightnessCallback(25);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("50%", ImVec2(buttonWidth, 35 * s))) {
-            m_currentBrightness = 50;
-            if (m_brightnessCallback) m_brightnessCallback(50);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("75%", ImVec2(buttonWidth, 35 * s))) {
-            m_currentBrightness = 75;
-            if (m_brightnessCallback) m_brightnessCallback(75);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("100%", ImVec2(buttonWidth, 35 * s))) {
-            m_currentBrightness = 100;
-            if (m_brightnessCallback) m_brightnessCallback(100);
         }
     } else {
         // Not connected message
