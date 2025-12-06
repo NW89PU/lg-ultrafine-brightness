@@ -37,6 +37,7 @@ private:
     void hideWindow();
     void toggleWindow();
 
+    HINSTANCE m_hInstance = nullptr;
     HWND m_hwnd = nullptr;
     bool m_running = true;
     bool m_windowVisible = true;

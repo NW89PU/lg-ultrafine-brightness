@@ -2,6 +2,10 @@
 // This file defines application resources
 
 #include <windows.h>
+#include "resource.h"
+
+// Application icon
+IDI_APPICON ICON "../brightness.ico"
 
 // Version information
 VS_VERSION_INFO VERSIONINFO

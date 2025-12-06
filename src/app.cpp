@@ -1,4 +1,5 @@
 #include "app.h"
+#include "resource.h"
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <algorithm>
@@ -27,6 +28,8 @@ Application::~Application() {
 }
 
 bool Application::initialize(HINSTANCE hInstance) {
+    m_hInstance = hInstance;
+
     if (!createWindow(hInstance)) {
         return false;
     }
@@ -44,7 +47,7 @@ bool Application::initialize(HINSTANCE hInstance) {
     }
 
     // Initialize tray icon
-    m_tray->initialize(m_hwnd, tray::TrayIcon::WM_TRAYICON);
+    m_tray->initialize(m_hwnd, hInstance, tray::TrayIcon::WM_TRAYICON);
     m_tray->show();
 
     // Initialize hotkeys
@@ -62,7 +65,8 @@ bool Application::createWindow(HINSTANCE hInstance) {
     wc.style = CS_CLASSDC;
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInstance;
-    wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPICON));
+    wc.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPICON));
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.lpszClassName = L"LGUltrafineBrightnessClass";
 

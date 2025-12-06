@@ -1,4 +1,5 @@
 #include "tray.h"
+#include "resource.h"
 #include <shellapi.h>
 
 namespace tray {
@@ -9,7 +10,7 @@ TrayIcon::~TrayIcon() {
     shutdown();
 }
 
-bool TrayIcon::initialize(HWND hwnd, UINT callbackMsg) {
+bool TrayIcon::initialize(HWND hwnd, HINSTANCE hInstance, UINT callbackMsg) {
     m_hwnd = hwnd;
 
     ZeroMemory(&m_nid, sizeof(m_nid));
@@ -19,8 +20,12 @@ bool TrayIcon::initialize(HWND hwnd, UINT callbackMsg) {
     m_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     m_nid.uCallbackMessage = callbackMsg;
 
-    // Load application icon or use default
-    m_nid.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+    // Load application icon from resources
+    m_nid.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPICON));
+    if (!m_nid.hIcon) {
+        // Fallback to default icon if loading fails
+        m_nid.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+    }
 
     wcscpy_s(m_nid.szTip, L"LG Ultrafine Brightness");
 

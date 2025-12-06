@@ -11,7 +11,7 @@ public:
     ~TrayIcon();
 
     // Initialize tray icon
-    bool initialize(HWND hwnd, UINT callbackMsg);
+    bool initialize(HWND hwnd, HINSTANCE hInstance, UINT callbackMsg);
     void shutdown();
 
     // Show/hide tray icon
