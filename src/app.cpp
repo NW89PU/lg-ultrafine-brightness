@@ -81,11 +81,16 @@ bool Application::initialize(HINSTANCE hInstance) {
     m_hotkey->initialize(m_hwnd);
     m_hotkey->registerDefaultHotkeys();
 
-    // Load persisted auto-brightness settings and propagate to controller + UI
+    // Load persisted auto-brightness settings and propagate to controller + UI,
+    // including the last-known Auto Brightness checkbox state.
     {
         auto s = settings::load();
         m_brightness->setAutoBrightnessSettings(s);
         m_ui->setAutoBrightnessSettings(s);
+        if (s.enabled) {
+            m_brightness->setAutoBrightness(true);
+        }
+        m_ui->setAutoBrightnessEnabled(m_brightness->isAutoBrightnessEnabled());
     }
 
     // Layout already propagated to UI before initialize().
@@ -141,8 +146,9 @@ bool Application::createWindow(HINSTANCE hInstance) {
         return false;
     }
 
-    ShowWindow(m_hwnd, SW_SHOWDEFAULT);
-    UpdateWindow(m_hwnd);
+    // Start hidden — only the tray icon is visible. User shows the window
+    // via the tray (left-click or context menu).
+    ShowWindow(m_hwnd, SW_HIDE);
 
     return true;
 }
@@ -158,20 +164,24 @@ void Application::setupCallbacks() {
         hideWindow();
     });
 
-    // Auto-brightness callback
+    // Auto-brightness checkbox toggled: apply, sync UI, persist.
     m_ui->setAutoBrightnessCallback([this](bool enabled) {
-        if (m_brightness) {
-            m_brightness->setAutoBrightness(enabled);
-            m_ui->setAutoBrightnessEnabled(enabled);
-        }
+        if (!m_brightness) return;
+        m_brightness->setAutoBrightness(enabled);
+        m_ui->setAutoBrightnessEnabled(m_brightness->isAutoBrightnessEnabled());
+        auto s = m_brightness->getAutoBrightnessSettings();
+        s.enabled = m_brightness->isAutoBrightnessEnabled();
+        settings::save(s);
     });
 
-    // Auto-brightness settings callback (slider moved): update controller + persist
+    // Curve / hysteresis edited in the side panel: persist while preserving
+    // the current enabled state (the slider callback doesn't know about it).
     m_ui->setAutoBrightnessSettingsCallback([this](const settings::AutoBrightnessSettings& s) {
-        if (m_brightness) {
-            m_brightness->setAutoBrightnessSettings(s);
-        }
-        settings::save(s);
+        if (!m_brightness) return;
+        auto merged = s;
+        merged.enabled = m_brightness->isAutoBrightnessEnabled();
+        m_brightness->setAutoBrightnessSettings(merged);
+        settings::save(merged);
     });
 
     // Window-resize request from the UI (Settings panel toggled)
@@ -184,6 +194,8 @@ void Application::setupCallbacks() {
                      rect.right - rect.left, rect.bottom - rect.top,
                      SWP_NOMOVE | SWP_NOZORDER);
     });
+
+    // Autostart is controlled from the tray context menu.
 
     // Tray callbacks
     m_tray->setShowCallback([this]() {

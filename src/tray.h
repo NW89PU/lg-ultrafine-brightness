@@ -41,6 +41,7 @@ private:
     HWND m_hwnd = nullptr;
     NOTIFYICONDATAW m_nid = {};
     bool m_visible = false;
+    HICON m_ownedIcon = nullptr;  // procedurally-drawn icon we own and must destroy
 
     MenuCallback m_showCallback;
     MenuCallback m_exitCallback;

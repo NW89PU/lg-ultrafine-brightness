@@ -46,7 +46,7 @@ private:
     HINSTANCE m_hInstance = nullptr;
     HWND m_hwnd = nullptr;
     bool m_running = true;
-    bool m_windowVisible = true;
+    bool m_windowVisible = false;  // start minimized to tray
 
     DWORD m_lastAutoBrightnessUpdate = 0;
     static constexpr DWORD AUTO_BRIGHTNESS_INTERVAL_MS = 500;  // Update every 500ms

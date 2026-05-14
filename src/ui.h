@@ -49,6 +49,7 @@ public:
         m_autoBrightnessCallback = callback;
     }
 
+
     // Update displayed brightness
     void setBrightness(int brightness) { m_currentBrightness = brightness; }
     int getBrightness() const { return m_currentBrightness; }

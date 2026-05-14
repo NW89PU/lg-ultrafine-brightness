@@ -23,7 +23,8 @@ struct AutoBrightnessSettings {
         {800.0f, 90},
         {2000.0f, 100},
     }};
-    int hysteresis = 5;  // minimum |current - target| in % before an adjustment is applied
+    int hysteresis = 5;     // minimum |current - target| in % before an adjustment is applied
+    bool enabled = false;   // last-known Auto Brightness checkbox state
 };
 
 // Load settings from %APPDATA%\LGUltrafineBrightness\config.ini.

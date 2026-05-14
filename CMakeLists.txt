@@ -45,6 +45,7 @@ set(SOURCES
     src/hotkey.cpp
     src/app.cpp
     src/settings.cpp
+    src/autostart.cpp
 )
 
 set(HEADERS
@@ -55,6 +56,7 @@ set(HEADERS
     src/hotkey.h
     src/app.h
     src/settings.h
+    src/autostart.h
 )
 
 # Create executable (WIN32 for no console window)

@@ -54,6 +54,10 @@ static void parseLine(const std::string& line, AutoBrightnessSettings& s) {
             s.hysteresis = std::clamp(std::stoi(val), 0, 50);
             return;
         }
+        if (key == "enabled") {
+            s.enabled = (val == "true" || val == "1" || val == "yes");
+            return;
+        }
         int idx = -1;
         if (matchIndexed("curve_lux_", idx)) {
             s.curve[idx].lux = std::max(0.0f, std::stof(val));
@@ -97,6 +101,7 @@ bool save(const AutoBrightnessSettings& s) {
         out << "curve_brightness_" << i << "=" << s.curve[i].brightness << "\n";
     }
     out << "hysteresis=" << s.hysteresis << "\n";
+    out << "enabled=" << (s.enabled ? "true" : "false") << "\n";
     return out.good();
 }
 
