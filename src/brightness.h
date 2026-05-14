@@ -1,5 +1,7 @@
 #pragma once
 
+#include "settings.h"
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -72,6 +74,10 @@ public:
     bool isAutoBrightnessEnabled() const { return m_autoBrightnessEnabled; }
     void updateAutoBrightness();  // Call periodically to adjust brightness based on ambient light
 
+    // Auto-brightness tuning
+    void setAutoBrightnessSettings(const settings::AutoBrightnessSettings& s) { m_autoSettings = s; }
+    const settings::AutoBrightnessSettings& getAutoBrightnessSettings() const { return m_autoSettings; }
+
 private:
     void* m_handle = nullptr;
     bool m_connected = false;
@@ -82,6 +88,7 @@ private:
     std::unique_ptr<als::ALSSensor> m_alsSensor;
     bool m_autoBrightnessEnabled = false;
     float m_lastAmbientLight = 0.0f;
+    settings::AutoBrightnessSettings m_autoSettings;
 
     // Cached brightness value to avoid redundant HID reads
     uint16_t m_cachedBrightness = MIN_BRIGHTNESS;

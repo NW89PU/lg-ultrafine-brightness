@@ -244,39 +244,35 @@ void BrightnessController::updateAutoBrightness() {
 
     float lux = getAmbientLight();
 
-    // Auto-brightness algorithm: map lux to brightness percentage
-    // Based on typical indoor/outdoor lighting levels:
-    // - 0-50 lux: very dark (10-20% brightness)
-    // - 50-200 lux: dim indoor (20-40% brightness)
-    // - 200-500 lux: normal indoor (40-70% brightness)
-    // - 500-1000 lux: bright indoor (70-90% brightness)
-    // - 1000+ lux: very bright/outdoor (90-100% brightness)
+    // Piecewise-linear interpolation across user-defined curve points.
+    // Sort a local copy by lux ascending — UI order is preserved in settings.
+    auto curve = m_autoSettings.curve;
+    std::sort(curve.begin(), curve.end(),
+              [](const settings::CurvePoint& a, const settings::CurvePoint& b) {
+                  return a.lux < b.lux;
+              });
 
-    int targetBrightness = 10;  // Default minimum
-
-    if (lux < 50.0f) {
-        // Very dark: 10-20%
-        targetBrightness = 10 + static_cast<int>(lux * 0.2f);
-    } else if (lux < 200.0f) {
-        // Dim indoor: 20-40%
-        targetBrightness = 20 + static_cast<int>((lux - 50.0f) * 0.133f);
-    } else if (lux < 500.0f) {
-        // Normal indoor: 40-70%
-        targetBrightness = 40 + static_cast<int>((lux - 200.0f) * 0.1f);
-    } else if (lux < 1000.0f) {
-        // Bright indoor: 70-90%
-        targetBrightness = 70 + static_cast<int>((lux - 500.0f) * 0.04f);
+    int targetBrightness;
+    if (lux <= curve.front().lux) {
+        targetBrightness = curve.front().brightness;
+    } else if (lux >= curve.back().lux) {
+        targetBrightness = curve.back().brightness;
     } else {
-        // Very bright/outdoor: 90-100%
-        float excess = std::min(lux - 1000.0f, 1000.0f);
-        targetBrightness = 90 + static_cast<int>(excess * 0.01f);
+        targetBrightness = curve.back().brightness;
+        for (size_t i = 0; i + 1 < curve.size(); ++i) {
+            if (lux >= curve[i].lux && lux <= curve[i + 1].lux) {
+                float span = curve[i + 1].lux - curve[i].lux;
+                float t = (span > 0.0f) ? (lux - curve[i].lux) / span : 0.0f;
+                targetBrightness = static_cast<int>(
+                    curve[i].brightness + t * (curve[i + 1].brightness - curve[i].brightness));
+                break;
+            }
+        }
     }
+    targetBrightness = std::clamp(targetBrightness, 0, 100);
 
-    targetBrightness = std::clamp(targetBrightness, 10, 100);
-
-    // Apply smooth adjustment: only change if difference is significant (>5%)
     int currentBrightness = getBrightness();
-    if (std::abs(currentBrightness - targetBrightness) > 5) {
+    if (std::abs(currentBrightness - targetBrightness) > m_autoSettings.hysteresis) {
         setBrightness(targetBrightness);
     }
 }

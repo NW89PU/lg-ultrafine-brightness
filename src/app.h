@@ -7,6 +7,7 @@
 #include "ui.h"
 #include "tray.h"
 #include "hotkey.h"
+#include "settings.h"
 
 namespace app {
 
@@ -54,6 +55,8 @@ private:
     std::unique_ptr<ui::UIRenderer> m_ui;
     std::unique_ptr<tray::TrayIcon> m_tray;
     std::unique_ptr<hotkey::HotkeyManager> m_hotkey;
+
+    settings::LayoutSettings m_layout;
 
     static Application* s_instance;
 };

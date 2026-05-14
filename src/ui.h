@@ -1,11 +1,19 @@
 #pragma once
 
+#include "settings.h"
+
 #include <Windows.h>
 #include <d3d11.h>
 #include <functional>
 #include <string>
 
 namespace ui {
+
+// Layout constants in device-independent pixels (96 DPI baseline).
+// Window dimensions are derived from these, scaled by current DPI.
+constexpr int MAIN_COL_DP = 350;
+constexpr int SETTINGS_COL_DP = 350;
+constexpr int CONTENT_HEIGHT_DP = 580;
 
 class UIRenderer {
 public:
@@ -55,8 +63,32 @@ public:
     void setConnected(bool connected) { m_connected = connected; }
     void setMonitorName(const std::wstring& name);
 
+    // Auto-brightness settings (read by sliders, written when sliders move)
+    void setAutoBrightnessSettings(const settings::AutoBrightnessSettings& s) { m_autoSettings = s; }
+    const settings::AutoBrightnessSettings& getAutoBrightnessSettings() const { return m_autoSettings; }
+    using AutoBrightnessSettingsChangedCallback = std::function<void(const settings::AutoBrightnessSettings&)>;
+    void setAutoBrightnessSettingsCallback(AutoBrightnessSettingsChangedCallback cb) {
+        m_autoSettingsCallback = cb;
+    }
+
+    // Window-resize callback. Fired when the settings panel is toggled.
+    // Receives the desired client-area size in pixels (already DPI-scaled).
+    using ResizeCallback = std::function<void(int clientWidthPx, int clientHeightPx)>;
+    void setResizeCallback(ResizeCallback cb) { m_resizeCallback = cb; }
+
+    // Pixel-size getters for the host window (in DPI-scaled pixels).
+    int getClientWidthPx() const;
+    int getClientHeightPx() const;
+
+    // Layout offsets read from layout.ini at startup.
+    void setLayout(const settings::LayoutSettings& l) { m_layout = l; }
+
     // Render main UI
     void renderMainUI();
+
+    // Resize the D3D11 swap chain to match the new client area.
+    // Call from WM_SIZE after a window resize.
+    void resizeSwapChain(UINT width, UINT height);
 
     // Get DirectX device for window transparency
     ID3D11Device* getDevice() const { return m_device; }
@@ -84,9 +116,15 @@ private:
     bool m_hasALS = false;
     std::string m_alsName;
 
+    settings::AutoBrightnessSettings m_autoSettings;
+    settings::LayoutSettings m_layout;
+    bool m_settingsExpanded = false;
+
     BrightnessChangedCallback m_brightnessCallback;
     CloseCallback m_closeCallback;
     AutoBrightnessCallback m_autoBrightnessCallback;
+    AutoBrightnessSettingsChangedCallback m_autoSettingsCallback;
+    ResizeCallback m_resizeCallback;
 };
 
 } // namespace ui

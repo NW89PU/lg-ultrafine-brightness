@@ -1,5 +1,7 @@
 #include "app.h"
 #include "resource.h"
+#include "settings.h"
+#include "ui.h"
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <algorithm>
@@ -31,9 +33,16 @@ Application::~Application() {
 bool Application::initialize(HINSTANCE hInstance) {
     m_hInstance = hInstance;
 
+    // Load layout first — createWindow uses the configured window height.
+    m_layout = settings::loadLayout();
+
     if (!createWindow(hInstance)) {
         return false;
     }
+
+    // Layout / theme must be set before UI initialize, because applyDarkTheme()
+    // reads accent/curve color hex values from it.
+    m_ui->setLayout(m_layout);
 
     if (!m_ui->initialize(m_hwnd)) {
         return false;
@@ -72,6 +81,15 @@ bool Application::initialize(HINSTANCE hInstance) {
     m_hotkey->initialize(m_hwnd);
     m_hotkey->registerDefaultHotkeys();
 
+    // Load persisted auto-brightness settings and propagate to controller + UI
+    {
+        auto s = settings::load();
+        m_brightness->setAutoBrightnessSettings(s);
+        m_ui->setAutoBrightnessSettings(s);
+    }
+
+    // Layout already propagated to UI before initialize().
+
     setupCallbacks();
 
     return true;
@@ -96,8 +114,8 @@ bool Application::createWindow(HINSTANCE hInstance) {
     ReleaseDC(nullptr, hdc);
 
     // Calculate DPI-scaled client area size
-    int clientWidth = static_cast<int>(350 * dpiScale);
-    int clientHeight = static_cast<int>(460 * dpiScale);
+    int clientWidth = static_cast<int>(ui::MAIN_COL_DP * dpiScale);
+    int clientHeight = static_cast<int>(m_layout.windowHeightDp * dpiScale);
 
     // Adjust for window frame and title bar
     RECT rect = { 0, 0, clientWidth, clientHeight };
@@ -146,6 +164,25 @@ void Application::setupCallbacks() {
             m_brightness->setAutoBrightness(enabled);
             m_ui->setAutoBrightnessEnabled(enabled);
         }
+    });
+
+    // Auto-brightness settings callback (slider moved): update controller + persist
+    m_ui->setAutoBrightnessSettingsCallback([this](const settings::AutoBrightnessSettings& s) {
+        if (m_brightness) {
+            m_brightness->setAutoBrightnessSettings(s);
+        }
+        settings::save(s);
+    });
+
+    // Window-resize request from the UI (Settings panel toggled)
+    m_ui->setResizeCallback([this](int clientWidthPx, int clientHeightPx) {
+        if (!m_hwnd) return;
+        RECT rect = { 0, 0, clientWidthPx, clientHeightPx };
+        DWORD style = static_cast<DWORD>(GetWindowLongPtrW(m_hwnd, GWL_STYLE));
+        AdjustWindowRect(&rect, style, FALSE);
+        SetWindowPos(m_hwnd, nullptr, 0, 0,
+                     rect.right - rect.left, rect.bottom - rect.top,
+                     SWP_NOMOVE | SWP_NOZORDER);
     });
 
     // Tray callbacks
@@ -288,7 +325,7 @@ LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 
     case WM_SIZE:
         if (app && app->m_ui && app->m_ui->getDevice() != nullptr && wParam != SIZE_MINIMIZED) {
-            // Handle resize if needed
+            app->m_ui->resizeSwapChain(LOWORD(lParam), HIWORD(lParam));
         }
         return 0;
 

@@ -44,6 +44,7 @@ set(SOURCES
     src/tray.cpp
     src/hotkey.cpp
     src/app.cpp
+    src/settings.cpp
 )
 
 set(HEADERS
@@ -53,6 +54,7 @@ set(HEADERS
     src/tray.h
     src/hotkey.h
     src/app.h
+    src/settings.h
 )
 
 # Create executable (WIN32 for no console window)
