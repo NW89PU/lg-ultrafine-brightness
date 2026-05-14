@@ -2,6 +2,16 @@
 
 A sleek Windows application for controlling LG Ultrafine 4K/5K monitor brightness with a beautiful modern UI and intelligent auto-brightness.
 
+## 🔱 Changes in this fork
+
+This fork extends [mengzhisy/lg-ultrafine-brightness](https://github.com/mengzhisy/lg-ultrafine-brightness):
+
+- **Editable brightness curve** — the fixed lux→% algorithm is replaced by 5 user-editable `(lux, brightness)` control points with piecewise-linear interpolation. A live preview plot shows the curve with a "now" marker for your current lux/brightness.
+- **Side settings panel** — a `Settings >` button toggles a right-side panel; the window resizes horizontally so nothing scrolls.
+- **Persistent configuration** — curve points and hysteresis are saved to `%APPDATA%\LGUltrafineBrightness\config.ini`.
+- **Tunable layout & theme** — `layout.ini` next to the executable controls vertical offsets, window height, accent color, text colors, and the curve line color. Auto-created on first run as a commented template.
+- **Buildable out of the box** — upstream's submodule pins referenced commits that no longer exist in `libusb/hidapi` / `ocornut/imgui`; this fork pins both to stable releases (`hidapi-0.15.0`, `imgui v1.92.8`). Also adds the missing `src/resource.h` that wasn't committed upstream.
+
 ## ✨ Features
 
 - 🌟 **Auto-Brightness** - Automatically adjusts screen brightness based on ambient light sensor (ALS) built into your LG Ultrafine display
@@ -27,12 +37,8 @@ If your LG Ultrafine monitor has a built-in ambient light sensor (ALS), the app 
 
 1. **View Real-time Ambient Light** - The UI displays the current ambient light level in lux
 2. **Enable Auto-Brightness** - Check the "Auto Brightness" checkbox to let the app automatically adjust brightness based on room lighting
-3. **Smart Algorithm** - The app intelligently maps ambient light levels to optimal brightness:
-   - 0-50 lux (very dark) → 10-20% brightness
-   - 50-200 lux (dim indoor) → 20-40% brightness
-   - 200-500 lux (normal indoor) → 40-70% brightness
-   - 500-1000 lux (bright indoor) → 70-90% brightness
-   - 1000+ lux (very bright/outdoor) → 90-100% brightness
+3. **Editable Curve** - Open the side panel (`Settings >`) to edit the 5 `(lux, brightness %)` control points. Points are interpolated piecewise-linearly. Below the first point and above the last, brightness is clamped to the endpoint values. A live plot shows the resulting curve with a marker for your current ambient lux.
+4. **Hysteresis** - Minimum |target − current| in % before a change is actually applied, to avoid jitter from a noisy sensor.
 
 > **Note**: If no ALS is detected, the UI will show "Not Supported" and you can still manually control brightness.
 
@@ -58,7 +64,7 @@ If your LG Ultrafine monitor has a built-in ambient light sensor (ALS), the app 
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/lg-ultrafine-brightness.git
+git clone --recurse-submodules https://github.com/NW89PU/lg-ultrafine-brightness.git
 cd lg-ultrafine-brightness
 
 # Initialize submodules
