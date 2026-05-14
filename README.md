@@ -23,7 +23,7 @@ Extends [mengzhisy/lg-ultrafine-brightness](https://github.com/mengzhisy/lg-ultr
 
 ## Screenshot
 
-<img src="img.png" width="50%" alt="LG Ultrafine Brightness Control Interface">
+<img src="img_new.png" width="50%" alt="LG Ultrafine Brightness Control Interface">
 
 ## Supported monitors
 
