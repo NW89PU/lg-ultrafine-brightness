@@ -1,57 +1,58 @@
 # LG Ultrafine Brightness Control
 
-A sleek Windows application for controlling LG Ultrafine 4K/5K monitor brightness with a beautiful modern UI and intelligent auto-brightness.
+Windows app for controlling LG Ultrafine 4K/5K monitor brightness, with auto-brightness via the monitor's built-in ambient light sensor.
 
-## 🔱 Changes in this fork
+## Changes in this fork
 
-This fork extends [mengzhisy/lg-ultrafine-brightness](https://github.com/mengzhisy/lg-ultrafine-brightness):
+Extends [mengzhisy/lg-ultrafine-brightness](https://github.com/mengzhisy/lg-ultrafine-brightness):
 
-- **Editable brightness curve** — the fixed lux→% algorithm is replaced by 5 user-editable `(lux, brightness)` control points with piecewise-linear interpolation. A live preview plot shows the curve with a "now" marker for your current lux/brightness.
-- **Side settings panel** — a `Settings >` button toggles a right-side panel; the window resizes horizontally so nothing scrolls.
-- **Persistent configuration** — curve points and hysteresis are saved to `%APPDATA%\LGUltrafineBrightness\config.ini`.
-- **Tunable layout & theme** — `layout.ini` next to the executable controls vertical offsets, window height, accent color, text colors, and the curve line color. Auto-created on first run as a commented template.
-- **Buildable out of the box** — upstream's submodule pins referenced commits that no longer exist in `libusb/hidapi` / `ocornut/imgui`; this fork pins both to stable releases (`hidapi-0.15.0`, `imgui v1.92.8`). Also adds the missing `src/resource.h` that wasn't committed upstream.
+- The auto-brightness response is defined by 5 editable (lux, brightness) points with piecewise-linear interpolation, instead of the original hardcoded 5-step mapping. A plot under the editor shows the curve with a marker for the current ambient lux.
+- A Settings button opens a side panel with the curve editor. The window grows horizontally to fit it instead of scrolling.
+- Curve points and hysteresis are saved to %APPDATA%\LGUltrafineBrightness\config.ini.
+- layout.ini next to the executable controls vertical offsets, window height, and theme colors (accent, two text colors, curve line). It is created on first run.
+- The original repo's submodule pins point at commits that no longer exist in libusb/hidapi and ocornut/imgui. This fork pins hidapi-0.15.0 and imgui v1.92.8.
+- The original missed committing src/resource.h. Added.
 
-## ✨ Features
+## Features
 
-- 🌟 **Auto-Brightness** - Automatically adjusts screen brightness based on ambient light sensor (ALS) built into your LG Ultrafine display
-- 🎨 **Beautiful Modern UI** - Dark-themed interface built with ImGui and DirectX 11
-- 🖥️ **Native Brightness Control** - Direct HID communication with LG Ultrafine monitors
-- ⌨️ **Global Hotkeys** - Adjust brightness from anywhere using Ctrl+Alt+Up/Down
-- 🎯 **System Tray Integration** - Minimal footprint with quick access from tray icon
+- Auto-brightness via the monitor's built-in ambient light sensor.
+- HID-based brightness control (no DDC/CI).
+- Global hotkeys: Ctrl+Alt+Up / Ctrl+Alt+Down.
+- System tray integration.
+- ImGui + DirectX 11 UI.
 
-## 📸 Screenshots
+## Screenshot
 
 <img src="img.png" width="50%" alt="LG Ultrafine Brightness Control Interface">
 
-## 🔧 Supported Monitors
+## Supported monitors
 
 - LG Ultrafine 5K Display (27MD5KL-B, 27MD5KA-B)
 - LG Ultrafine 4K Display (24MD4KL-B, 22MD4KA-B)
 
-## 🎮 Usage
+## Usage
 
-### Auto-Brightness
+### Auto-brightness
 
-If your LG Ultrafine monitor has a built-in ambient light sensor (ALS), the app will automatically detect it and enable auto-brightness features:
+If the monitor has a built-in ambient light sensor, the app detects it and exposes auto-brightness:
 
-1. **View Real-time Ambient Light** - The UI displays the current ambient light level in lux
-2. **Enable Auto-Brightness** - Check the "Auto Brightness" checkbox to let the app automatically adjust brightness based on room lighting
-3. **Editable Curve** - Open the side panel (`Settings >`) to edit the 5 `(lux, brightness %)` control points. Points are interpolated piecewise-linearly. Below the first point and above the last, brightness is clamped to the endpoint values. A live plot shows the resulting curve with a marker for your current ambient lux.
-4. **Hysteresis** - Minimum |target − current| in % before a change is actually applied, to avoid jitter from a noisy sensor.
+1. The UI shows the current ambient light in lux.
+2. Check "Auto Brightness" to let the app drive brightness from the sensor reading.
+3. Click "Settings >" to open the curve editor. Edit the 5 (lux, %) points; values are interpolated piecewise-linearly. Lux below the first point clamps to the first point's brightness, lux above the last clamps to the last.
+4. Hysteresis is the minimum |target - current| in percent before an update is applied. Increase it if the sensor is jittery, decrease it for a more responsive curve.
 
-> **Note**: If no ALS is detected, the UI will show "Not Supported" and you can still manually control brightness.
+If no sensor is detected, the UI shows "Not Supported" and manual control still works.
 
-### Manual Brightness Control
+### Manual brightness
 
-- **Slider**: Drag the slider in the main window
-- **Hotkeys**:
-  - `Ctrl + Alt + Up` - Increase brightness by 5%
-  - `Ctrl + Alt + Down` - Decrease brightness by 5%
+- Drag the slider in the main window.
+- Hotkeys:
+  - Ctrl+Alt+Up: increase brightness by 5%.
+  - Ctrl+Alt+Down: decrease brightness by 5%.
 
-> **Tip**: When auto-brightness is enabled, the manual slider is disabled. Uncheck "Auto Brightness" to regain manual __control.
+When Auto Brightness is on, the manual slider is disabled. Uncheck it to regain manual control.
 
-## 🛠️ Building from Source
+## Building from source
 
 ### Prerequisites
 
@@ -60,7 +61,7 @@ If your LG Ultrafine monitor has a built-in ambient light sensor (ALS), the app 
 - CMake 3.20+
 - Git
 
-### Build Steps
+### Build steps
 
 ```bash
 # Clone the repository
